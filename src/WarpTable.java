@@ -81,15 +81,29 @@ public class WarpTable extends Plugin {
 	            return false;
 	        
 	        if (split[0].equalsIgnoreCase("/warptable")) {
-	        	int pageNumber = new Integer(split[1]);
+	        	int pageNumber;
+	        	if (split.length == 1)
+	        		pageNumber = 1;
+	        	else try {
+	        		pageNumber = new Integer(split[1]);
+	        	} catch (NumberFormatException ex){
+	        		player.sendMessage("Invalid page number!");
+	        		return true;
+	        	}
+	        	
 	            String output = new String();
 	            String warpList = etc.getDataSource().getWarpNames(player);
 	            String [] warpListSplit = warpList.split("\\s+");
-	            
+	            if (pageNumber * entriesPerPage > warpListSplit.length) {
+	            	player.sendMessage("Invalid page number!");
+	            	return true;
+	            }	            
+	            /* Display page # */
+            	player.sendMessage("Page #" + pageNumber + " of " + warpListSplit.length/entriesPerPage);
 	            /* Display stuff */
-	            for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage); i++) {
+	            for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
 	            	String warpItem = warpListSplit[i];
-            		output += warpItem;
+            		output += warpItem + " ";
             		if (lineLength - msgLength(output) < entryLength){
 	            		player.sendMessage(output);
 	            		output = new String();
@@ -115,10 +129,10 @@ public class WarpTable extends Plugin {
             		}
 	            }
 	            player.sendMessage(output);
+	            return true;
 	        }
 	        else
 	            return false;
-	        return true;
 	    }
     }
 }
