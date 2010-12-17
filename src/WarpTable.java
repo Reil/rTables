@@ -96,12 +96,14 @@ public class WarpTable extends Plugin {
 	            String output = new String();
 	            String warpList = etc.getDataSource().getWarpNames(player);
 	            String [] warpListSplit = warpList.split("\\s+");
-	            if (pageNumber * entriesPerPage > warpListSplit.length) {
+	            int numPages = warpListSplit.length / entriesPerPage;
+	            if (warpListSplit.length % entriesPerPage >= 1) numPages ++;
+	            if (pageNumber  > numPages) {
 	            	player.sendMessage("Invalid page number!");
 	            	return true;
-	            }	            
+	            }
 	            /* Display page # */
-            	player.sendMessage("Page #" + pageNumber + " of " + warpListSplit.length/entriesPerPage);
+            	player.sendMessage("Page #" + pageNumber + " of " + numPages);
 	            /* Display stuff */
 	            for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
 	            	String warpItem = warpListSplit[i];
