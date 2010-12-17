@@ -41,6 +41,7 @@ public class WarpTable extends Plugin {
         log.info("[WarpTable] Mod Disabled.");
 		
     }
+    /* Being borrowed/adapted code from vMinecraft by nossr50 */
 	 public static int msgLength(String str){
 			int length = 0;
 			//Loop through all the characters, skipping any color characters
@@ -72,6 +73,7 @@ public class WarpTable extends Plugin {
 			else
 				return -1;
     }
+	/* End code borrowed from nossr50's vMinecraft*/
 	 
     public class WarpTableListener extends PluginListener
     {
@@ -107,8 +109,7 @@ public class WarpTable extends Plugin {
             		if (lineLength - msgLength(output) < entryLength){
 	            		player.sendMessage(output);
 	            		output = new String();
-	            	} else for (int Compensating = entryLength - (msgLength(output) % entryLength);
-            		         Compensating > 1;)
+	            	} else for (int Compensating = entryLength - (msgLength(output) % entryLength); Compensating > 1;)
             		{
             			switch (Compensating % 4) {
             				case 0:
