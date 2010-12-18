@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class WarpTable extends Plugin {
@@ -75,6 +76,51 @@ public class WarpTable extends Plugin {
     }
 	/* End code borrowed from nossr50's vMinecraft*/
 	 
+	public String[] makeTable(String spaceSeperated, int pageNumber){
+		ArrayList <String> messages = new ArrayList<String>();
+		String output = new String();
+        String [] warpListSplit = spaceSeperated.split("\\s+");
+        int numPages = warpListSplit.length / entriesPerPage;
+        if (warpListSplit.length % entriesPerPage >= 1) numPages ++;
+        if (pageNumber  > numPages) {
+        	messages.add("Invalid page number!");
+        	return messages.toArray(new String[messages.size()]);
+        }
+        /* Display page # */
+    	messages.add("Page #" + pageNumber + " of " + numPages);
+        /* Display stuff */
+        for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
+        	String warpItem = warpListSplit[i];
+        	if (msgLength(output) + msgLength (warpItem) > lineLength ) {
+        		messages.add(new String(output));
+        		output = new String();
+        	}
+    		output += warpItem + " ";
+    		if (lineLength - msgLength(output) < entryLength){
+        		messages.add(new String (output));
+        		output = new String();
+        	} else for (int Compensating = entryLength - (msgLength(output) % entryLength); Compensating > 1;)
+    		{
+    			switch (Compensating % 4) {
+    				case 0:
+    					output += " ";
+    					Compensating -= 4;
+    					break;
+    				case 2:
+    					output += ".";
+    					Compensating -=2;
+    					break;
+    				case 1:
+    				case 3:
+    					output += "'";
+    					Compensating -=3;
+    					break;
+    			}
+    			
+    		}
+        }
+        return messages.toArray(new String[messages.size()]);
+	}
     public class WarpTableListener extends PluginListener
     {
 
@@ -92,45 +138,22 @@ public class WarpTable extends Plugin {
 	        		player.sendMessage("Invalid page number!");
 	        		return true;
 	        	}
-	        	
-	            String output = new String();
-	            String warpList = etc.getDataSource().getWarpNames(player);
-	            String [] warpListSplit = warpList.split("\\s+");
-	            int numPages = warpListSplit.length / entriesPerPage;
-	            if (warpListSplit.length % entriesPerPage >= 1) numPages ++;
-	            if (pageNumber  > numPages) {
-	            	player.sendMessage("Invalid page number!");
-	            	return true;
-	            }
-	            /* Display page # */
-            	player.sendMessage("Page #" + pageNumber + " of " + numPages);
-	            /* Display stuff */
-	            for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
-	            	String warpItem = warpListSplit[i];
-            		output += warpItem + " ";
-            		if (lineLength - msgLength(output) < entryLength){
-	            		player.sendMessage(output);
-	            		output = new String();
-	            	} else for (int Compensating = entryLength - (msgLength(output) % entryLength); Compensating > 1;)
-            		{
-            			switch (Compensating % 4) {
-            				case 0:
-            					output += " ";
-            					Compensating -= 4;
-            					break;
-            				case 2:
-            					output += ".";
-            					Compensating -=2;
-            					break;
-            				case 1:
-            				case 3:
-            					output += "'";
-            					Compensating -=3;
-            					break;
-            			}
-            			
-            		}
-	            }
+	        	String warpList = etc.getDataSource().getWarpNames(player);
+	            for (String output : makeTable(warpList, pageNumber))
+	            player.sendMessage(output);
+	            return true;
+	        } else if (split[0].equalsIgnoreCase("/plugintable")){
+	        	int pageNumber;
+	        	if (split.length == 1)
+	        		pageNumber = 1;
+	        	else try {
+	        		pageNumber = new Integer(split[1]);
+	        	} catch (NumberFormatException ex){
+	        		player.sendMessage("Invalid page number!");
+	        		return true;
+	        	}
+	        	String warpList = etc.getLoader().getPluginList();
+	            for (String output : makeTable(warpList, pageNumber))
 	            player.sendMessage(output);
 	            return true;
 	        }
