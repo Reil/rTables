@@ -28,7 +28,8 @@ public class WarpTable extends Plugin {
         if (load())
 		{
             log.info("[WarpTable] Enabled.");
-			etc.getInstance().addCommand("/warptable", "Nicer formatted table of warps.");
+			etc.getInstance().addCommand("/warptable",   "<pagenumber> - Nicer formatted table of warps.");
+			etc.getInstance().addCommand("/plugintable", "<pagenumber> - Nicer formatted table of plugins.");
 		}	
         else
 		{
