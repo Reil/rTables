@@ -95,6 +95,9 @@ public class rTables extends JavaPlugin {
 	
 	 
 	public String[] makeTable(String spaceSeperated, int pageNumber){
+		return makeTable(spaceSeperated, pageNumber,entryLength, entriesPerPage);
+	}
+	public String[] makeTable(String spaceSeperated, int pageNumber, int entryLength, int entriesPerPage){
 		ArrayList <String> messages = new ArrayList<String>();
 		String output = new String();
         String [] warpListSplit = spaceSeperated.split("\\s+");
@@ -139,6 +142,7 @@ public class rTables extends JavaPlugin {
         }
         return messages.toArray(new String[messages.size()]);
 	}
+	
 	
     public class WarpTableListener extends PlayerListener
     {
