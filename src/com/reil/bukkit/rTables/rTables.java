@@ -95,18 +95,19 @@ public class rTables extends JavaPlugin {
         		output = new String();
         	} else for (int Compensating = entryLength - (MessageParser.msgLength(output) % entryLength); Compensating > 1;)
     		{
+        		String lastColor = MessageParser.lastColor(output);
     			switch (Compensating % 4) {
     				case 0:
     					output += " ";
     					Compensating -= 4;
     					break;
     				case 2:
-    					output += Color.BLACK + "." + MessageParser.lastColor(output);
+    					output += Color.BLACK + "." + lastColor;
     					Compensating -=2;
     					break;
     				case 1:
     				case 3:
-    					output += Color.BLACK + "'" + MessageParser.lastColor(output);
+    					output += Color.BLACK + "'" + lastColor;
     					Compensating -=3;
     					break;
     			}
