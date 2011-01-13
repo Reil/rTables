@@ -2,7 +2,9 @@ package com.reil.bukkit.rTables;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import com.reil.bukkit.rParser.MessageParser;
 
+import org.bukkit.Color;
 import org.bukkit.Player;
 import org.bukkit.Server;
 import org.bukkit.event.Event;
@@ -29,12 +31,7 @@ public class rTables extends JavaPlugin {
         super(pluginLoader, instance, desc, plugin, cLoader);
     }
 	
-    public void initialize()
-    {
-		PluginManager loader = MCServer.getPluginManager();
-        //etc.getLoader().addListener(PluginLoader.Hook.COMMAND, listener, this, PluginListener.Priority.MEDIUM);
-        loader.registerEvent(Event.Type.PLAYER_COMMAND, listener, Event.Priority.Monitor, this);
-    }
+
 	
 	public boolean load() {
         return true;	
@@ -43,6 +40,9 @@ public class rTables extends JavaPlugin {
     public void onEnable() {
         if (load())
 		{
+        	PluginManager loader = MCServer.getPluginManager();
+			//etc.getLoader().addListener(PluginLoader.Hook.COMMAND, listener, this, PluginListener.Priority.MEDIUM);
+        	loader.registerEvent(Event.Type.PLAYER_COMMAND, listener, Event.Priority.Monitor, this);
             log.info("[WarpTable] Enabled.");
 			/*etc.getInstance().addCommand("/warptable",   "<pagenumber> - Nicer formatted table of warps.");
 			etc.getInstance().addCommand("/plugintable", "<pagenumber> - Nicer formatted table of plugins.");*/
@@ -56,44 +56,17 @@ public class rTables extends JavaPlugin {
 
     public void onDisable() {
 		//etc.getInstance().removeCommand("/warptable");
-        log.info("[WarpTable] Mod Disabled.");
+        log.info("[WarpTable] Plugin Disabled.");
 		
     }
-    /* Being borrowed/adapted code from vMinecraft by nossr50 */
-	 public static int msgLength(String str){
-			int length = 0;
-			//Loop through all the characters, skipping any color characters
-			//and their following color codes
-			for(int x = 0; x<str.length(); x++)
-			{
-				int len = charLength(str.charAt(x));
-				length += len;
-			}
-			return length;
-    }
-	 
-	 private static int charLength(char x)
-	{
-	    	if("i.:,;|!".indexOf(x) != -1)
-				return 2;
-			else if("l'".indexOf(x) != -1)
-				return 3;
-			else if("tI[]".indexOf(x) != -1)
-				return 4;
-			else if("fk{}<>\"*()".indexOf(x) != -1)
-				return 5;
-			else if("abcdeghjmnopqrsuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ1234567890\\/#?$%-=_+&^".indexOf(x) != -1)
-				return 6;
-			else if("@~".indexOf(x) != -1)
-				return 7;
-			else if(x==' ')
-				return 4;
-			else
-				return -1;
-    }
-	/* End code borrowed from nossr50's vMinecraft*/
 	
-	 
+	public String[] wordWrap(String toWrap) {
+		String parsed = new String();
+		for (String toParse : toWrap.split("\n")) {
+			parsed += MessageParser.lastColor(parsed) + MessageParser.combineSplit(0, MessageParser.wordWrap(toParse), "\n") + "\n";
+		}
+		return parsed.split("\n");
+	}
 	public String[] makeTable(String spaceSeperated, int pageNumber){
 		return makeTable(spaceSeperated, pageNumber,entryLength, entriesPerPage);
 	}
@@ -112,15 +85,15 @@ public class rTables extends JavaPlugin {
         /* Display stuff */
         for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
         	String warpItem = warpListSplit[i];
-        	if (msgLength(output) + msgLength (warpItem) > lineLength ) {
+        	if (MessageParser.msgLength(output) + MessageParser.msgLength (warpItem) > lineLength ) {
         		messages.add(new String(output));
         		output = new String();
         	}
     		output += warpItem + " ";
-    		if (lineLength - msgLength(output) < entryLength){
+    		if (lineLength - MessageParser.msgLength(output) < entryLength){
         		messages.add(new String (output));
         		output = new String();
-        	} else for (int Compensating = entryLength - (msgLength(output) % entryLength); Compensating > 1;)
+        	} else for (int Compensating = entryLength - (MessageParser.msgLength(output) % entryLength); Compensating > 1;)
     		{
     			switch (Compensating % 4) {
     				case 0:
@@ -128,18 +101,19 @@ public class rTables extends JavaPlugin {
     					Compensating -= 4;
     					break;
     				case 2:
-    					output += ".";
+    					output += Color.BLACK + "." + MessageParser.lastColor(output);
     					Compensating -=2;
     					break;
     				case 1:
     				case 3:
-    					output += "'";
+    					output += Color.BLACK + "'" + MessageParser.lastColor(output);
     					Compensating -=3;
     					break;
     			}
     			
     		}
         }
+        messages.add(new String(output));
         return messages.toArray(new String[messages.size()]);
 	}
 	
@@ -150,44 +124,7 @@ public class rTables extends JavaPlugin {
     	public void onPlayerCommand(PlayerChatEvent event){
     		Player player = event.getPlayer();
     		String [] split = event.getMessage().split(" ");
-	        /*if (!player.canUseCommand(split[0]))
-	            return false;*/
-	        
-	        /*if (split[0].equalsIgnoreCase("/warptable")) {
-	        	int pageNumber;
-	        	if (split.length == 1)
-	        		pageNumber = 1;
-	        	else try {
-	        		pageNumber = new Integer(split[1]);
-	        	} catch (NumberFormatException ex){
-	        		player.sendMessage("Invalid page number!");
-	        		event.setCancelled(true);
-	        		return;
-	        	}
-	        	String warpList = etc.getDataSource().getWarpNames(player);
-	            for (String output : makeTable(warpList, pageNumber))
-	            player.sendMessage(output);
-	            event.setCancelled(true);
-	            return;
-	        }*/
-	        /*if (split[0].equalsIgnoreCase("/plugintable")){
-	        	int pageNumber;
-	        	if (split.length == 1)
-	        		pageNumber = 1;
-	        	else try {
-	        		pageNumber = new Integer(split[1]);
-	        	} catch (NumberFormatException ex){
-	        		player.sendMessage("Invalid page number!");
-	        		event.setCancelled(true);
-	        		return;
-	        	}
-	        	String pluginList = etc.getLoader().getPluginList();
-	            for (String output : makeTable(pluginList, pageNumber))
-	            player.sendMessage(output);
-	            event.setCancelled(true);
-	            return;
-	        }*/
-	        if (split[0].equalsIgnoreCase("/playertable")){
+	        if (split[0].equalsIgnoreCase("/playertable") || split[0].equalsIgnoreCase("playertable")){
 	        	int pageNumber;
 	        	if (split.length == 1)
 	        		pageNumber = 1;
@@ -200,8 +137,9 @@ public class rTables extends JavaPlugin {
 	        	}
 	        	String pluginList = new String();
 	        	for (Player addme : MCServer.getOnlinePlayers()) {
-	        		pluginList = pluginList + addme.getDisplayName() + " ";
+	        		pluginList = pluginList + addme.getName() + " ";
 	        	}
+	        	player.sendMessage(pluginList);
 	            for (String output : makeTable(pluginList, pageNumber))
 	            player.sendMessage(output);
 	            event.setCancelled(true);
