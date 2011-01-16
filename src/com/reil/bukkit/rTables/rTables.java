@@ -2,14 +2,12 @@ package com.reil.bukkit.rTables;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import com.reil.bukkit.rParser.MessageParser;
+import com.reil.bukkit.rParser.rParser;
 
-import org.bukkit.Color;
-import org.bukkit.Player;
+
+import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.event.Event;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
@@ -21,14 +19,14 @@ public class rTables extends JavaPlugin {
 	protected static final int entryLength = 78;
 	protected static final int entriesPerPage = 28;
 	
-    private WarpTableListener listener = new WarpTableListener();
+    private rTablesListener listener = new rTablesListener(this);
 
     protected static final Logger log = Logger.getLogger("Minecraft");
     // private final String newLine = System.getProperty("line.separator");
     protected String warpFile;
     
-    public rTables(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File plugin, ClassLoader cLoader) {
-        super(pluginLoader, instance, desc, plugin, cLoader);
+    public rTables(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
+        super(pluginLoader, instance, desc, folder, plugin, cLoader);
     }
 	
 
@@ -61,9 +59,12 @@ public class rTables extends JavaPlugin {
     }
 	
 	public String[] wordWrap(String toWrap) {
+		return wordWrap(toWrap, "", lineLength);
+	}
+	public String[] wordWrap(String toWrap, String prefix, int lineLength){
 		String parsed = new String();
 		for (String toParse : toWrap.split("\n")) {
-			parsed += MessageParser.lastColor(parsed) + MessageParser.combineSplit(0, MessageParser.wordWrap(toParse), "\n") + "\n";
+			parsed += rParser.lastColor(parsed) + rParser.combineSplit(0, rParser.wordWrap(toParse, prefix, lineLength), "\n") + "\n";
 		}
 		return parsed.split("\n");
 	}
@@ -85,29 +86,29 @@ public class rTables extends JavaPlugin {
         /* Display stuff */
         for (int i = (pageNumber-1) * entriesPerPage ; i < (pageNumber * entriesPerPage) && i < warpListSplit.length; i++) {
         	String warpItem = warpListSplit[i];
-        	if (MessageParser.msgLength(output) + MessageParser.msgLength (warpItem) > lineLength ) {
+        	if (rParser.msgLength(output) + rParser.msgLength (warpItem) > lineLength ) {
         		messages.add(new String(output));
         		output = new String();
         	}
     		output += warpItem + " ";
-    		if (lineLength - MessageParser.msgLength(output) < entryLength){
+    		if (lineLength - rParser.msgLength(output) < entryLength){
         		messages.add(new String (output));
         		output = new String();
-        	} else for (int Compensating = entryLength - (MessageParser.msgLength(output) % entryLength); Compensating > 1;)
+        	} else for (int Compensating = entryLength - (rParser.msgLength(output) % entryLength); Compensating > 1;)
     		{
-        		String lastColor = MessageParser.lastColor(output);
+        		String lastColor = rParser.lastColor(output);
     			switch (Compensating % 4) {
     				case 0:
     					output += " ";
     					Compensating -= 4;
     					break;
     				case 2:
-    					output += Color.BLACK + "." + lastColor;
+    					output += ChatColor.BLACK + "." + lastColor;
     					Compensating -=2;
     					break;
     				case 1:
     				case 3:
-    					output += Color.BLACK + "'" + lastColor;
+    					output += ChatColor.BLACK + "'" + lastColor;
     					Compensating -=3;
     					break;
     			}
@@ -117,37 +118,10 @@ public class rTables extends JavaPlugin {
         messages.add(new String(output));
         return messages.toArray(new String[messages.size()]);
 	}
-	
-	
-    public class WarpTableListener extends PlayerListener
-    {
-
-    	public void onPlayerCommand(PlayerChatEvent event){
-    		Player player = event.getPlayer();
-    		String [] split = event.getMessage().split(" ");
-	        if (split[0].equalsIgnoreCase("/playertable") || split[0].equalsIgnoreCase("playertable")){
-	        	int pageNumber;
-	        	if (split.length == 1)
-	        		pageNumber = 1;
-	        	else try {
-	        		pageNumber = new Integer(split[1]);
-	        	} catch (NumberFormatException ex){
-	        		player.sendMessage("Invalid page number!");
-	        		event.setCancelled(true);
-	        		return;
-	        	}
-	        	String pluginList = new String();
-	        	for (Player addme : MCServer.getOnlinePlayers()) {
-	        		pluginList = pluginList + addme.getName() + " ";
-	        	}
-	        	player.sendMessage(pluginList);
-	            for (String output : makeTable(pluginList, pageNumber))
-	            player.sendMessage(output);
-	            event.setCancelled(true);
-	            return;
-	        }
-	        else
-	            return;
-	    }
-    }
+	/*
+	 * Following functions essentially give other plugins access to rParser.
+	 */
+	public int msgLength(String findLength){
+		return rParser.msgLength(findLength);
+	}
 }
